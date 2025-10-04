@@ -1,0 +1,85 @@
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.user-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.user-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.user-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.user-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.user-role-badge.admin {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.user-role-badge.staff {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.user-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.user-avatar-large {
+  width: 80px;
+  height: 80px;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: #6b7280;
+}
+
+.user-card-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.user-card-email {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 12px 0;
+}
+
+.user-card-date {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
