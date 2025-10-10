@@ -185,6 +185,7 @@ export default function Inventory() {
               {editingItem ? 'Edit Item' : 'Add New Item'}
             </h2>
             <form onSubmit={handleSubmit} className="modal-form">
+              <p>Produt Name</p>
               <input
                 type="text"
                 placeholder="Name"
@@ -192,6 +193,7 @@ export default function Inventory() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
               />
+              <p>Product Category</p>
               <input
                 type="text"
                 placeholder="Category"
@@ -199,26 +201,29 @@ export default function Inventory() {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 required
               />
+              <p>Product Qunatitiy</p>
               <input
                 type="number"
                 placeholder="Quantity"
                 value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0})}
                 required
               />
+              <p>Product Price</p>
               <input
                 type="number"
                 step="0.01"
                 placeholder="Price"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0})}
                 required
               />
+              <p>Reorder Level</p>
               <input
                 type="number"
                 placeholder="Reorder Level"
                 value={formData.reorder_level}
-                onChange={(e) => setFormData({ ...formData, reorder_level: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, reorder_level: parseInt(e.target.value) || 10 })}
               />
               <select
                 value={formData.supplier_id}

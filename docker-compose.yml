@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Backend - Flask API
+  backend:
+    build:
+      context: ./apex-stock-backend
+      dockerfile: Dockerfile
+    container_name: apex-stock-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - SECRET_KEY=your-super-secret-key-change-this
+      - JWT_SECRET_KEY=another-secret-key-for-jwt
+      - DATABASE_URL=sqlite:///apex_stock.db
+    volumes:
+      - ./apex-stock-backend/instance:/app/instance
+    networks:
+      - apex-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend - React App
+  frontend:
+    build:
+      context: ./apex-stock-frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:5000/api
+    container_name: apex-stock-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - apex-network
+    restart: unless-stopped
+
+networks:
+  apex-network:
+    driver: bridge
+
+volumes:
+  backend-data:

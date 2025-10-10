@@ -228,3 +228,8 @@
 .modal-buttons button {
   flex: 1;
 }
+
+p{
+  margin-bottom: -10px;
+  margin-left: 5px;
+}

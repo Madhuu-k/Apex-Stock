@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// Base URL for Flask API
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -11,28 +9,29 @@ const api = axios.create({
   },
 });
 
-// Add token to every request if it exists
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  console.log('🔍 Token:', token);
+  console.log('🔍 URL:', config.url);
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('✅ Auth header:', config.headers.Authorization);
+  } else {
+    console.log('❌ No token!');
   }
   return config;
 });
 
-// Handle errors globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid - logout
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
+    console.log('❌ Error response:', error.response?.status);
+    console.log('❌ Error config:', error.config?.url);
     return Promise.reject(error);
   }
 );
+
 
 // AUTH ENDPOINTS
 export const authAPI = {
@@ -44,24 +43,25 @@ export const authAPI = {
 
 // INVENTORY ENDPOINTS
 export const inventoryAPI = {
-  getAll: (category) => api.get('/inventory', { params: { category } }),
-  getById: (id) => api.get(`/inventory/${id}`),
-  create: (itemData) => api.post('/inventory', itemData),
-  update: (id, itemData) => api.put(`/inventory/${id}`, itemData),
-  delete: (id) => api.delete(`/inventory/${id}`),
-  getLowStock: () => api.get('/inventory/low-stock'),
-  getStats: () => api.get('/inventory/stats'),
+  getAll: (category) => api.get('/inventory/', { params: { category } }),
+  getById: (id) => api.get(`/inventory/${id}/`),
+  create: (itemData) => api.post('/inventory/', itemData),
+  update: (id, itemData) => api.put(`/inventory/${id}/`, itemData),
+  delete: (id) => api.delete(`/inventory/${id}/`),
+  getLowStock: () => api.get('/inventory/low-stock/'),
+  getStats: () => api.get('/inventory/stats/'),
 };
 
 // SUPPLIER ENDPOINTS
 export const supplierAPI = {
-  getAll: () => api.get('/suppliers'),
-  getById: (id) => api.get(`/suppliers/${id}`),
-  create: (supplierData) => api.post('/suppliers', supplierData),
-  update: (id, supplierData) => api.put(`/suppliers/${id}`, supplierData),
-  delete: (id) => api.delete(`/suppliers/${id}`),
-  getItems: (id) => api.get(`/suppliers/${id}/items`),
+  getAll: () => api.get('/suppliers/'),
+  getById: (id) => api.get(`/suppliers/${id}/`),
+  create: (supplierData) => api.post('/suppliers/', supplierData),
+  update: (id, supplierData) => api.put(`/suppliers/${id}/`, supplierData),
+  delete: (id) => api.delete(`/suppliers/${id}/`),
+  getItems: (id) => api.get(`/suppliers/${id}/items/`),
 };
+
 
 // USER ENDPOINTS (Admin only)
 export const userAPI = {
