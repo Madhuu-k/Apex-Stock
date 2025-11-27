@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: apex-stock
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apex-backend
+  template:
+    metadata:
+      labels:
+        app: apex-backend
+    spec:
+      containers:
+        - name: backend
+          image: apex-stock-backend:latest   
+          imagePullPolicy: IfNotPresent      
+          ports:
+            - containerPort: 5000

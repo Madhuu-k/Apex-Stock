@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    image: madhusudhank/apex-stock-backend:latest
+    restart: always
+    environment:
+      - FLASK_ENV=production
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./instance:/app/instance
+
+  frontend:
+    image: madhusudhank/apex-stock-frontend:latest
+    restart: always
+    environment:
+      - REACT_APP_API_URL=http://apex-backend:5000/api
+    ports:
+      - "80:80"

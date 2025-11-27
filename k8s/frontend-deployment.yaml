@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: apex-stock
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apex-frontend
+  template:
+    metadata:
+      labels:
+        app: apex-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: apex-stock-frontend:latest      
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: REACT_APP_API_URL
+              value: "http://backend-service:5000/api"

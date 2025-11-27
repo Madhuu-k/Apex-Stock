@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: apex-stock
+spec:
+  selector:
+    app: apex-backend
+  ports:
+    - port: 5000
+      targetPort: 5000
+  type: ClusterIP

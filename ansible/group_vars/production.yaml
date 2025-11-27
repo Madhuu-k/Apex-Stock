@@ -1,0 +1,11 @@
+---
+app_user: ubuntu
+app_dir: /home/ubuntu/apex-stock
+
+# Docker Hub details
+dockerhub_user: madhusudhank
+backend_image: "{{ dockerhub_user }}/apex-stock-backend:latest"
+frontend_image: "{{ dockerhub_user }}/apex-stock-frontend:latest"
+
+# remote compose file path
+compose_file_remote: "{{ app_dir }}/docker-compose.yml"

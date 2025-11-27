@@ -1,0 +1,137 @@
+---
+- name: Deploy Apex Stock to servers
+  hosts: appservers
+  become: true
+  vars_files:
+    - group_vars/production.yml
+
+  pre_tasks:
+    - name: Gather facts (ensure we have distribution release)
+      ansible.builtin.setup:
+        gather_subset: "!all"
+      tags: always
+
+    - name: Ensure apt cache updated (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+  tasks:
+    - name: Ensure required apt packages present (prereqs)
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker official GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker Engine packages
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install docker compose plugin package (preferred)
+      ansible.builtin.apt:
+        name: docker-compose-plugin
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Fallback - ensure docker-compose binary exists if plugin not available
+      ansible.builtin.shell: |
+        if ! command -v "docker compose" >/dev/null 2>&1 && ! command -v docker-compose >/dev/null 2>&1; then
+          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+        fi
+      args:
+        creates: /usr/local/bin/docker-compose
+      register: compose_fallback
+      changed_when: compose_fallback.rc == 0
+      failed_when: compose_fallback.rc not in [0,1]   # tolerate if already exists
+
+    - name: Ensure docker group exists
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add app user to docker group
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        groups: docker
+        append: yes
+      when: app_user is defined
+
+    - name: Ensure app directory exists
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: Ensure instance directory exists (for sqlite)
+      ansible.builtin.file:
+        path: "{{ app_dir }}/instance"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: Copy docker-compose.yml to remote server
+      ansible.builtin.copy:
+        src: files/docker-compose.yml
+        dest: "{{ compose_file_remote }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0644'
+      notify:
+        - Pull docker images
+        - Start compose
+
+  handlers:
+    - name: Pull docker images
+      become: true
+      ansible.builtin.shell: |
+        set -e
+        # If using local images or image tags, the pull may fail — tolerate errors
+        docker pull {{ backend_image }} || true
+        docker pull {{ frontend_image }} || true
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Start compose
+      become: true
+      ansible.builtin.shell: |
+        set -e
+        # bring down old compose (if any), then start up detached
+        if command -v docker >/dev/null 2>&1; then
+          docker compose -f "{{ compose_file_remote }}" down || true
+          docker compose -f "{{ compose_file_remote }}" up -d --remove-orphans
+        else
+          # fallback to docker-compose binary
+          docker-compose -f "{{ compose_file_remote }}" down || true
+          docker-compose -f "{{ compose_file_remote }}" up -d --remove-orphans
+        fi
+      args:
+        chdir: "{{ app_dir }}"
+
